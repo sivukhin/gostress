@@ -110,6 +110,9 @@ func (kube *KubeContext) GetPodObject(namespace, name string, modifiers ...PodOp
 	for _, modifier := range modifiers {
 		modifier.apply(&options)
 	}
+	for k, v := range options.labels {
+		options.labels[k] = K8sNormalize(v)
+	}
 	return &v1.Pod{
 		ObjectMeta: v1meta.ObjectMeta{
 			Namespace: namespace,

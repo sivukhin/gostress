@@ -141,7 +141,7 @@ func (kube *KubeContext) GetPodObject(namespace, name string, modifiers ...PodOp
 					},
 				},
 			},
-			DNSPolicy:     v1.DNSDefault,
+			DNSPolicy:     v1.DNSClusterFirst,
 			RestartPolicy: v1.RestartPolicyNever,
 		},
 	}

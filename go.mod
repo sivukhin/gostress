@@ -1,4 +1,4 @@
-module gostress
+module github.com/sivukhin/gostress
 
 go 1.20
 

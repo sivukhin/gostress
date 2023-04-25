@@ -1,4 +1,4 @@
-package main
+package gostress
 
 import (
 	"go.uber.org/zap"

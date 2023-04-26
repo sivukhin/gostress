@@ -30,7 +30,7 @@ func PrintMetric(name string, metrics []*io_prometheus_client.Metric) string {
 		var current m
 		labels := make([]string, 0)
 		for _, label := range metric.GetLabel() {
-			if label.GetName() == "gostress" || label.GetValue() == "gostress" {
+			if label.GetName() == "gostress_name" || label.GetName() == "gostress_category" || label.GetValue() == "gostress" {
 				continue
 			}
 			labels = append(labels, fmt.Sprintf("%v:%v", label.GetName(), label.GetValue()))

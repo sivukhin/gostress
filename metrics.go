@@ -1,6 +1,9 @@
 package gostress
 
-import "github.com/prometheus/client_golang/prometheus"
+import (
+	"github.com/prometheus/client_golang/prometheus"
+	"strings"
+)
 
 var (
 	ExpectedRpsGauge      prometheus.Gauge
@@ -13,7 +16,8 @@ var (
 )
 
 func registerMetrics(name string) {
-	labels := prometheus.Labels{"group": "gostress", "gostress": name}
+	tokens := strings.SplitN(name, "/", 2)
+	labels := prometheus.Labels{"group": "gostress", "gostress-name": name, "gostress-category": tokens[0]}
 	ExpectedRpsGauge = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name:        "gostress_expected_rps",
 		Help:        "gostress expected rps",

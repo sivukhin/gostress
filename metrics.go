@@ -17,7 +17,7 @@ var (
 
 func registerMetrics(name string) {
 	tokens := strings.SplitN(name, "/", 2)
-	labels := prometheus.Labels{"group": "gostress", "gostress-name": name, "gostress-category": tokens[0]}
+	labels := prometheus.Labels{"group": "gostress", "gostress_name": name, "gostress_category": tokens[0]}
 	ExpectedRpsGauge = prometheus.NewGauge(prometheus.GaugeOpts{
 		Name:        "gostress_expected_rps",
 		Help:        "gostress expected rps",

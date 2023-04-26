@@ -34,10 +34,21 @@ func (s *Stress) RunK8s(ctx context.Context, namespace string, modifiers ...PodO
 		s.RunLocal(ctx)
 		return
 	}
-	s.runK8s(ctx, namespace, modifiers...)
+	s.Logger.Infof("run k8s stress")
+	s.runK8s(ctx, namespace, false, modifiers...)
 }
 
-func (s *Stress) runK8s(ctx context.Context, namespace string, modifiers ...PodOpts) {
+func (s *Stress) RunK8sDetached(ctx context.Context, namespace string, modifiers ...PodOpts) {
+	if os.Getenv(GoStressEnv) == GoStressEnvK8s {
+		s.Logger.Infof("detected k8s environment, run test locally")
+		s.RunLocal(ctx)
+		return
+	}
+	s.Logger.Infof("run k8s stress in detached mode")
+	s.runK8s(ctx, namespace, true, modifiers...)
+}
+
+func (s *Stress) runK8s(ctx context.Context, namespace string, detach bool, modifiers ...PodOpts) {
 	kube, err := NewKubeContext(s.Logger)
 	if err != nil {
 		panic(fmt.Errorf("unable to create k8s context: %w", err))
@@ -48,7 +59,10 @@ func (s *Stress) runK8s(ctx context.Context, namespace string, modifiers ...PodO
 	if err != nil {
 		panic(fmt.Errorf("unable to create k8s pod: %v", err))
 	}
-	defer kubePod.Shutdown(shutdownTimeout)
+	if !detach {
+		defer kubePod.Shutdown(shutdownTimeout)
+	}
+
 	s.Logger.Infof("created pod in namespace %v: %v", namespace, kubePod.object.Name)
 
 	err = kubePod.Wait(waitTimeout, waitInterval)
@@ -82,7 +96,7 @@ func (s *Stress) runK8s(ctx context.Context, namespace string, modifiers ...PodO
 	if err != nil {
 		panic(fmt.Errorf("unable to get relative path for %v against %v: %w", cwd, root, err))
 	}
-	_, err = workspace.Exec(ctx, fmt.Sprintf("%v -test.run %v -test.v", path.Join(workspace.Directory(), rel, workspace.Name()), s.Name))
+	_, err = workspace.Exec(ctx, fmt.Sprintf("%v -test.run %v -test.v", path.Join(workspace.Directory(), rel, workspace.Name()), s.Name), detach)
 	if err != nil {
 		panic(err)
 	}

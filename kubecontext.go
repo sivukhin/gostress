@@ -214,8 +214,13 @@ func init() {
 	scheme.AddKnownTypes(schema.GroupVersion{Group: "meta.k8s.io", Version: "v1"}, &v1.PodExecOptions{})
 }
 
-func (workspace *KubePodWorkspace) Exec(ctx context.Context, c string) ([]string, error) {
-	command := []string{"bash", "-c", fmt.Sprintf("mkdir -p %v && cd %v && %v", workspace.Directory(), workspace.Directory(), c)}
+func (workspace *KubePodWorkspace) Exec(ctx context.Context, c string, detach bool) ([]string, error) {
+	background := ""
+	if detach {
+		background = "&"
+	}
+	sprintf := fmt.Sprintf("mkdir -p %v && cd %v && %v %v", workspace.Directory(), workspace.Directory(), c, background)
+	command := []string{"bash", "-c", sprintf}
 	req := workspace.pod.kube.client.
 		RESTClient().
 		Post().
@@ -345,7 +350,7 @@ func (workspace *KubePodWorkspace) CopyContent(ctx context.Context, content []by
 
 func (workspace *KubePodWorkspace) Info(ctx context.Context) (os, arch string, err error) {
 	var output []string
-	output, err = workspace.Exec(ctx, "go version")
+	output, err = workspace.Exec(ctx, "go version", false)
 	if err != nil {
 		return
 	}

@@ -2,6 +2,7 @@ package gostress
 
 import (
 	"go.uber.org/zap"
+	"sync"
 	"time"
 )
 
@@ -9,6 +10,7 @@ type (
 	StressFn   func(ctx RequestContext) error
 	WorkerPool struct {
 		F        StressFn
+		Lock     sync.Mutex
 		Work     chan Id
 		Workers  []Worker
 		WorkerId Id
@@ -37,6 +39,11 @@ func (p *WorkerPool) Kill() {
 }
 
 func (p *WorkerPool) Adjust(size int) {
+	if len(p.Workers) == size {
+		return
+	}
+	p.Lock.Lock()
+	defer p.Lock.Unlock()
 	if len(p.Workers) == size {
 		return
 	}

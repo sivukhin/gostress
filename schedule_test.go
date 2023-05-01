@@ -9,8 +9,7 @@ import (
 	"time"
 )
 
-func TestName(t *testing.T) {
-	registerMetrics("test")
+func TestFairLoadGeneration(t *testing.T) {
 	r := NewRunner()
 	l1 := LoadParams{Rps: 500, Workers: 10, Duration: 10 * time.Second}
 	requests := int64(0)
@@ -20,6 +19,7 @@ func TestName(t *testing.T) {
 		return nil
 	})
 	r.RunSimpleSchedule(context.Background(), l1, l1, pool, logger)
+	t.Logf("requests: %v", requests)
 	assert.Greater(t, requests, int64(4900))
 	assert.Less(t, requests, int64(5100))
 }

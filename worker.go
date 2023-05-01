@@ -6,15 +6,28 @@ import (
 	"time"
 )
 
-type (
-	Worker struct {
-		WorkerId Id
-		Shutdown chan struct{}
-	}
-)
+type Worker struct {
+	WorkerId Id
+	Shutdown chan struct{}
+	Finished chan struct{}
+}
 
-func (w Worker) Run(work <-chan Id, timeout time.Duration, f StressFn, logger *zap.SugaredLogger) {
+func NewWorker(id Id) *Worker {
+	return &Worker{
+		WorkerId: id,
+		Shutdown: make(chan struct{}, 1),
+		Finished: make(chan struct{}, 1),
+	}
+}
+
+func (w *Worker) Run(
+	work <-chan Id,
+	timeout time.Duration,
+	logger *zap.SugaredLogger,
+	f StressFn,
+) {
 	logger.Infof("worker[%v]: created", w.WorkerId)
+work:
 	for {
 		select {
 		case id := <-work:
@@ -38,12 +51,14 @@ func (w Worker) Run(work <-chan Id, timeout time.Duration, f StressFn, logger *z
 			case <-finish:
 				continue
 			case <-timer.C:
-				logger.Errorf("worker[%v]: request %v seems to stuck (didn't finished within %v), killing worker", w.WorkerId, 2*timeout, id)
-				return
+				logger.Errorf("worker[%v]: request %v seems to stuck (didn't finished within %v), stop waiting for it", w.WorkerId, id, 2*timeout)
+				continue
 			}
 		case <-w.Shutdown:
 			logger.Errorf("worker[%v]: shutdown requested, killing worker", w.WorkerId)
-			return
+			break work
 		}
 	}
+	logger.Infof("worker[%v]: finished", w.WorkerId)
+	w.Finished <- struct{}{}
 }

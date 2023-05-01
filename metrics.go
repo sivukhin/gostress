@@ -6,13 +6,13 @@ import (
 )
 
 var (
-	ExpectedRpsGauge      prometheus.Gauge
-	ExpectedWorkersGauge  prometheus.Gauge
-	CurrentWorkersGauge   prometheus.Gauge
-	SentRequestCounter    prometheus.Counter
-	SkippedRequestCounter prometheus.Counter
-	ErrorsCounter         prometheus.Counter
-	RequestLatency        *prometheus.HistogramVec
+	ExpectedRpsGauge      = prometheus.NewGauge(prometheus.GaugeOpts{})
+	ExpectedWorkersGauge  = prometheus.NewGauge(prometheus.GaugeOpts{})
+	CurrentWorkersGauge   = prometheus.NewGauge(prometheus.GaugeOpts{})
+	SentRequestCounter    = prometheus.NewCounter(prometheus.CounterOpts{})
+	SkippedRequestCounter = prometheus.NewCounter(prometheus.CounterOpts{})
+	ErrorsCounter         = prometheus.NewCounter(prometheus.CounterOpts{})
+	RequestLatency        = prometheus.NewHistogramVec(prometheus.HistogramOpts{}, []string{"status"})
 )
 
 func registerMetrics(name string) {

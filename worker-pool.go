@@ -12,7 +12,7 @@ type (
 		F        StressFn
 		Lock     sync.Mutex
 		Work     chan Id
-		Workers  []Worker
+		Workers  []*Worker
 		WorkerId Id
 		Timeout  time.Duration
 		Logger   *zap.SugaredLogger
@@ -23,7 +23,7 @@ func NewWorkerPool(workerTimeout time.Duration, logger *zap.SugaredLogger, f Str
 	return &WorkerPool{
 		F:       f,
 		Work:    make(chan Id),
-		Workers: make([]Worker, 0),
+		Workers: make([]*Worker, 0),
 		Timeout: workerTimeout,
 		Logger:  logger,
 	}
@@ -57,8 +57,8 @@ func (p *WorkerPool) Adjust(size int) {
 }
 
 func (p *WorkerPool) Spawn() {
-	w := Worker{WorkerId: p.WorkerId, Shutdown: make(chan struct{}, 1)}
+	w := NewWorker(p.WorkerId)
 	p.WorkerId++
-	go func() { w.Run(p.Work, p.Timeout, p.F, p.Logger) }()
+	go func() { w.Run(p.Work, p.Timeout, p.Logger, p.F) }()
 	p.Workers = append(p.Workers, w)
 }
